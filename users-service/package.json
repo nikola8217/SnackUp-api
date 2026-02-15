@@ -18,6 +18,10 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@snackupapp/shared": "^1.0.3"
+    "@aws-sdk/client-dynamodb": "^3.990.0",
+    "@aws-sdk/lib-dynamodb": "^3.990.0",
+    "@aws-sdk/types": "^3.973.1",
+    "@snackupapp/shared": "^1.0.3",
+    "bcryptjs": "^3.0.3"
   }
 }

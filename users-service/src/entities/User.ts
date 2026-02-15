@@ -8,9 +8,9 @@ export class User {
         public email: string,
         public passwordHash: string,
         public role: Role = Role.USER,
-        public restaurantId?: string,
     ) {
         UserValidator.validateId(_id);
+        UserValidator.validateName(name);
         UserValidator.validateEmail(email);
         UserValidator.validatePasswordHash(passwordHash);
         UserValidator.validateRole(role);
