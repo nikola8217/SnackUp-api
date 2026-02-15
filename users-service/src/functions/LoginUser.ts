@@ -1,19 +1,19 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { RegisterUserRequest } from "../requests/RegisterUserRequest";
 import { AppError } from "@snackupapp/shared";
-import { userService } from "../dependencies/services";
+import { authService } from "../dependencies/services";
+import { LoginUserRequest } from "../requests/LoginUserRequest";
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
-    const dto = RegisterUserRequest.toDto(event);
+    const dto = LoginUserRequest.toDto(event);
 
-    const user = await userService.registerUser(dto);
+    const user = await authService.loginUser(dto);
 
     return { 
-      statusCode: 201, 
+      statusCode: 200, 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: "User successfully registered",
+        message: "User successfully logged in",
         user 
       }) 
     };

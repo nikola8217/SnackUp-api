@@ -3,9 +3,12 @@ service: users-service
 provider:
   name: aws
   runtime: nodejs18.x
+  region: eu-central-1
+  stage: ${opt:stage, 'dev'}
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
-    USERS_TABLE: ${env:USERS_TABLE}  
+    USERS_TABLE: snackup-${self:provider.stage}-users_table
+    JWT_SECRET: ${env:JWT_SECRET}
 
 functions:
   registerUser:
@@ -13,6 +16,12 @@ functions:
     events:
       - httpApi:
           path: /users/register
+          method: post
+  loginUser:
+    handler: src/functions/loginUser.handler
+    events:
+      - httpApi:
+          path: /auth/login
           method: post
 
 package:
@@ -36,7 +45,7 @@ resources:
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${env:USERS_TABLE}
+        TableName: ${self:provider.environment.USERS_TABLE} 
         AttributeDefinitions:
           - AttributeName: email
             AttributeType: S
