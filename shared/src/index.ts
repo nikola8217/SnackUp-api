@@ -6,3 +6,5 @@ export * from './errors/NotFoundError';
 export * from './errors/RequiredFieldError';
 export * from './errors/InvalidCredentialsError';
 export * from './errors/SecretNotDefinedError';
+export * from './errors/NotAuthenticatedError';
+export * from './errors/NotAuthorizedError';
