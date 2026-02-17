@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ICategoryRepository } from "../services/ports/ICategoryRepository";
 import { Category } from "../entities/Category";
 import { CategoryMapper, CategoryDbItem } from "../mappers/CategoryMapper";
@@ -80,5 +80,32 @@ export class CategoryRepository implements ICategoryRepository {
         }
 
         return CategoryMapper.toDomain(result.Item as CategoryDbItem);
+    }
+
+    async updateCategory(category: Category): Promise<Category> {
+        await this.docClient.send(
+            new UpdateCommand({
+                TableName: this.tableName,
+                Key: { id: category.id },
+                UpdateExpression: "set categoryName = :categoryName",
+                ExpressionAttributeValues: {
+                    ":categoryName": category.categoryName
+                },
+                ConditionExpression: "attribute_exists(id)", 
+                ReturnValues: "ALL_NEW" 
+            })
+        );
+
+        return category;
+    }
+
+    async deleteCategory(id: string): Promise<void> {
+        await this.docClient.send(
+            new DeleteCommand({
+                TableName: this.tableName,
+                Key: { id },
+                ConditionExpression: "attribute_exists(id)" 
+            })
+        );
     }
 }

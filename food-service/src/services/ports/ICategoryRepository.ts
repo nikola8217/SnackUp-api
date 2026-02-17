@@ -8,4 +8,8 @@ export interface ICategoryRepository {
     getAllCategories(): Promise<Category[]>;
 
     getCategoryById(id: string): Promise<Category | null>;
+
+    updateCategory(category: Category): Promise<Category>;
+    
+    deleteCategory(id: string): Promise<void>;
 }

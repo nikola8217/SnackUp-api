@@ -65,6 +65,22 @@ functions:
           path: /categories/{id}
           method: get
 
+  updateCategory:
+    handler: src/functions/updateCategory.handler
+    events:
+      - httpApi:
+          path: /categories/{id}
+          method: put
+          authorizer: adminAuthorizer
+
+  deleteCategory:
+    handler: src/functions/deleteCategory.handler
+    events:
+      - httpApi:
+          path: /categories/{id}
+          method: delete
+          authorizer: adminAuthorizer
+
 package:
   individually: true
 
