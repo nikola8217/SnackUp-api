@@ -9,6 +9,7 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
     CATEGORIES_TABLE: snackup-${self:provider.stage}-category_table
     FOOD_TABLE: snackup-${self:provider.stage}-food_table
+    FOOD_IMAGES_BUCKET: snackup-${self:provider.stage}-food-images
     JWT_SECRET: ${env:JWT_SECRET}
 
   iam:
@@ -28,6 +29,14 @@ provider:
             - !GetAtt FoodTable.Arn
             - !Join ["/", [!GetAtt FoodTable.Arn, "index/*"]]
 
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+          Resource:
+            - arn:aws:s3:::snackup-${self:provider.stage}-food-images/*
+
   httpApi:
     authorizers:
       adminAuthorizer:
@@ -42,7 +51,7 @@ provider:
 functions:
   authorizer:
     handler: src/functions/authorizer.handler
-      
+
   createCategory:
     handler: src/functions/createCategory.handler
     events:
@@ -81,6 +90,22 @@ functions:
           method: delete
           authorizer: adminAuthorizer
 
+  uploadFoodImage:
+    handler: src/functions/uploadFoodImage.handler
+    events:
+      - httpApi:
+          path: /foods/upload-url
+          method: post
+          authorizer: adminAuthorizer
+
+  createFood:
+    handler: src/functions/createFood.handler
+    events:
+      - httpApi:
+          path: /foods
+          method: post
+          authorizer: adminAuthorizer
+
 package:
   individually: true
 
@@ -99,6 +124,7 @@ custom:
 
 resources:
   Resources:
+
     CategoryTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -119,7 +145,7 @@ resources:
             Projection:
               ProjectionType: ALL 
         BillingMode: PAY_PER_REQUEST
-        
+
     FoodTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -131,3 +157,13 @@ resources:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+
+    FoodImagesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: snackup-${self:provider.stage}-food-images
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
