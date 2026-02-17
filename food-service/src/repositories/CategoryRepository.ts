@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ICategoryRepository } from "../services/ports/ICategoryRepository";
 import { Category } from "../entities/Category";
 import { CategoryMapper, CategoryDbItem } from "../mappers/CategoryMapper";
@@ -31,7 +31,7 @@ export class CategoryRepository implements ICategoryRepository {
         const result = await this.docClient.send(
             new QueryCommand({
                 TableName: this.tableName,
-                IndexName: "CategoryNameIndex", // Proveri da li se u serverless.yml IndexName i dalje zove ovako
+                IndexName: "CategoryNameIndex", 
                 KeyConditionExpression: "categoryName = :categoryName",
                 ExpressionAttributeValues: {
                     ":categoryName": categoryName
@@ -47,5 +47,38 @@ export class CategoryRepository implements ICategoryRepository {
         const item = result.Items[0] as CategoryDbItem;
         
         return CategoryMapper.toDomain(item);
+    }
+
+    async getAllCategories(): Promise<Category[]> {
+        const result = await this.docClient.send(
+            new ScanCommand({
+                TableName: this.tableName,
+            })
+        );
+
+        if (!result.Items || result.Items.length === 0) {
+            return [];
+        }
+
+        return result.Items.map(item =>
+            CategoryMapper.toDomain(item as CategoryDbItem)
+        );
+    }
+
+    async getCategoryById(id: string): Promise<Category | null> {
+        const result = await this.docClient.send(
+            new GetCommand({
+                TableName: this.tableName,
+                Key: {
+                    id: id
+                }
+            })
+        );
+
+        if (!result.Item) {
+            return null;
+        }
+
+        return CategoryMapper.toDomain(result.Item as CategoryDbItem);
     }
 }

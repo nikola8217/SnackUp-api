@@ -1,4 +1,4 @@
-import { BadRequestError } from "@snackupapp/shared";
+import { BadRequestError, NotFoundError } from "@snackupapp/shared";
 import { randomUUID } from "crypto";
 import { ICategoryRepository } from "./ports/ICategoryRepository";
 import { CreateCategoryDto } from "../dtos/CreateCategoryDto";
@@ -20,5 +20,17 @@ export class CategoryService {
         const createdCategory = await this.categoryRepository.createCategory(category);
 
         return createdCategory;
+    }
+
+    async fetchCategories(): Promise<Category[]> {
+        return this.categoryRepository.getAllCategories();
+    }
+
+    async fetchCategoryById(id: string): Promise<Category> {
+        const category = await this.categoryRepository.getCategoryById(id);
+
+        if (!category) throw new NotFoundError("Category not found");
+
+        return category;
     }
 }

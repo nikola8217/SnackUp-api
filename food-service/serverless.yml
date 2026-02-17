@@ -51,6 +51,20 @@ functions:
           method: post
           authorizer: adminAuthorizer
 
+  fetchCategories:
+    handler: src/functions/fetchCategories.handler
+    events:
+      - httpApi:
+          path: /categories
+          method: get
+
+  fetchCategoryById:
+    handler: src/functions/fetchCategoryById.handler
+    events:
+      - httpApi:
+          path: /categories/{id}
+          method: get
+
 package:
   individually: true
 
