@@ -9,16 +9,30 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
     USERS_TABLE: snackup-${self:provider.stage}-users_table
     JWT_SECRET: ${env:JWT_SECRET}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - !GetAtt UsersTable.Arn
+            - !Join ["/", [!GetAtt UsersTable.Arn, "index/*"]]
 
 functions:
   registerUser:
-    handler: src/functions/registerUser.handler
+    handler: src/api/functions/registerUser.handler
     events:
       - httpApi:
           path: /users/register
           method: post
   loginUser:
-    handler: src/functions/loginUser.handler
+    handler: src/api/functions/loginUser.handler
     events:
       - httpApi:
           path: /auth/login

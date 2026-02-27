@@ -22,8 +22,12 @@
     "@aws-sdk/client-dynamodb": "^3.990.0",
     "@aws-sdk/lib-dynamodb": "^3.990.0",
     "@aws-sdk/types": "^3.973.1",
+    "@mediatr/core": "^3.0.0-dev.21",
     "@snackupapp/shared": "^1.0.3",
     "bcryptjs": "^3.0.3",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "mediatr-ts": "^2.2.0",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0"
   }
 }

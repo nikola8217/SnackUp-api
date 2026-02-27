@@ -9,7 +9,7 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
     CATEGORIES_TABLE: snackup-${self:provider.stage}-category_table
     FOOD_TABLE: snackup-${self:provider.stage}-food_table
-    FOOD_IMAGES_BUCKET: snackup-${self:provider.stage}-food-images
+    FOOD_IMAGES_BUCKET: snackup-${self:provider.stage}-food-images-v3
     JWT_SECRET: ${env:JWT_SECRET}
 
   iam:
@@ -35,7 +35,7 @@ provider:
             - s3:GetObject
             - s3:DeleteObject
           Resource:
-            - arn:aws:s3:::snackup-${self:provider.stage}-food-images/*
+            - arn:aws:s3:::snackup-${self:provider.stage}-food-images-v3/*
 
   httpApi:
     authorizers:
@@ -50,10 +50,10 @@ provider:
 
 functions:
   authorizer:
-    handler: src/functions/authorizer.handler
+    handler: src/shared/authorizer.handler
 
   createCategory:
-    handler: src/functions/createCategory.handler
+    handler: src/modules/category/api/functions/createCategory.handler
     events:
       - httpApi:
           path: /categories
@@ -61,21 +61,21 @@ functions:
           authorizer: adminAuthorizer
 
   fetchCategories:
-    handler: src/functions/fetchCategories.handler
+    handler: src/modules/category/api/functions/fetchCategories.handler
     events:
       - httpApi:
           path: /categories
           method: get
 
   fetchCategoryById:
-    handler: src/functions/fetchCategoryById.handler
+    handler: src/modules/category/api/functions/fetchCategoryById.handler
     events:
       - httpApi:
           path: /categories/{id}
           method: get
 
   updateCategory:
-    handler: src/functions/updateCategory.handler
+    handler: src/modules/category/api/functions/updateCategory.handler
     events:
       - httpApi:
           path: /categories/{id}
@@ -83,7 +83,7 @@ functions:
           authorizer: adminAuthorizer
 
   deleteCategory:
-    handler: src/functions/deleteCategory.handler
+    handler: src/modules/category/api/functions/deleteCategory.handler
     events:
       - httpApi:
           path: /categories/{id}
@@ -91,7 +91,7 @@ functions:
           authorizer: adminAuthorizer
 
   uploadFoodImage:
-    handler: src/functions/uploadFoodImage.handler
+    handler: src/modules/food/api/functions/uploadFoodImage.handler
     events:
       - httpApi:
           path: /foods/upload-url
@@ -99,12 +99,50 @@ functions:
           authorizer: adminAuthorizer
 
   createFood:
-    handler: src/functions/createFood.handler
+    handler: src/modules/food/api/functions/createFood.handler
     events:
       - httpApi:
           path: /foods
           method: post
           authorizer: adminAuthorizer
+
+  fetchFoodById:
+    handler: src/modules/food/api/functions/fetchFoodById.handler
+    events:
+      - httpApi:
+          path: /foods/{id}
+          method: get
+
+  updateFood:
+    handler: src/modules/food/api/functions/updateFood.handler
+    events:
+      - httpApi:
+          path: /foods/{id}
+          method: put
+          authorizer: adminAuthorizer
+
+  deleteFood:
+    handler: src/modules/food/api/functions/deleteFood.handler
+    events:
+      - httpApi:
+          path: /foods/{id}
+          method: delete
+          authorizer: adminAuthorizer
+
+  fetchFoodsByCategory:
+    handler: src/modules/food/api/functions/fetchFoodsByCategory.handler
+    events:
+      - httpApi:
+          path: /categories/{categoryId}/foods
+          method: get
+          authorizer: adminAuthorizer
+
+  fetchFoodsMenu:
+    handler: src/modules/food/api/functions/fetchFoodsMenu.handler
+    events:
+      - httpApi:
+          path: /menu 
+          method: get
 
 package:
   individually: true
@@ -153,15 +191,25 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: categoryId
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+        - IndexName: CategoryIdIndex
+          KeySchema:
+            - AttributeName: categoryId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
     FoodImagesBucket:
       Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
       Properties:
-        BucketName: snackup-${self:provider.stage}-food-images
+        BucketName: snackup-${self:provider.stage}-food-images-v3
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
           BlockPublicPolicy: true
